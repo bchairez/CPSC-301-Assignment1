@@ -1,3 +1,6 @@
+//Brian Chairez
+//CPSC 301 Section 2
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
