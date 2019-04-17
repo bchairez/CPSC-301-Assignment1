@@ -1,6 +1,9 @@
 //Brian Chairez
 //CPSC 301 Section 2
 
+// Brian Chairez
+// 301 Section 2
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -14,61 +17,128 @@ struct Person{
   float balance;
 };
 
-
 // Function Prototypes
 void mainMenu();
-int findNum();                                                     // returns num of people in array
-Person fillPerson(Person P[], int N);                    // returns an array of structs of people given a file
-void Display(Person P[], int N);                            // displays all people in array: shows full name and balance
-void FindRichest(Person P[], int N);                       // shows which person in the array is the richest
-void Deposit(string CustName, Person P[], int  N);      // Deposits money into an existing person in the array
-void newCopy(string file, Person P[], int N);
+int findNum();
+Person * readData(int &N);
+void Display(Person *P, int N);                            // displays all people in array: shows full name and balance
+void FindRichest(Person *P, int N);                       // shows which person in the array is the richest
+void Deposit(string CustName, Person *P, int  N);      // Deposits money into an existing person in the array
+void newCopy(string file, Person *P, int N);
+
+void printmenu() {
+    cout << "Please enter a choice:" << endl;
+    cout << "1. Display records"<< endl;
+    cout << "2. Deposit funds"<< endl;
+    cout << "3. Find Highest Balance" << endl;
+    cout << "4. Update records" << endl;
+    cout << "5. Exit the program" << endl;
+}
 
 int main()
 {
-  int N = findNum();
-  string CustName;
+    int N = 0;
+    string CustName;
+    Person *P = readData(N);
+    int choice;
+    do
+    {
+        printmenu();
+        cin.clear();
+        cin >> choice;
+        cin.clear();
+        switch(choice)
+        {
+            case 1:
+                Display(P,N);
+                break;
 
-  Person P[N];
-  fillPerson(P, N);
-  Display(P, N);
-  cout << endl;
-  FindRichest(P,N);
-  cout << endl;
-  Deposit(CustName, P, N);
-  newCopy("data.txt",P,N);
-  cout << "Exiting."<< endl;
+            case 2:
+                Deposit(CustName, P, N);
+                break;
 
-  return 0;
+            case 3:
+                FindRichest(P, N);
+                break;
+
+            case 4:
+                newCopy("data.txt", P, N);
+                break;
+
+            case 5:
+                newCopy("data.txt", P, N);
+                cout << "Exiting the program." << endl;
+                break;
+
+            default:
+                cout << "Invalid entry" << endl;
+                break;
+        }
+        cout << endl;
+   } while(choice != 5);
+   delete P;
+      return 0;
 }
 
+
+// I have no idea
+Person * readData(int &N)
+{
+  ifstream infile;
+  string fname;
+  string lname;
+  string fullname;
+  int i = 0;
+
+  N = findNum();
+
+  infile.open("data.txt");
+  if (!infile)
+  {
+    cout << "Could not open file." << endl;
+    exit(1);
+  }
+
+  Person *P = new Person[N];
+
+  while(infile)
+  {
+    infile >> fname >> lname;
+    fullname = fname + " " + lname;
+    strcpy(P[i].name, fullname.c_str());
+    infile >> P[i].balance;
+    i++;
+  }
+
+  infile.close();
+  return P;
+}
 
 // Finds the number of people in the file to create the array of structs; returns an int
 int findNum()
 {
-  string fname;
-  int N = 0;
-
   ifstream infile;
+  string fname;
+  int i = 0;
   infile.open("data.txt");
-
-  if (!infile)
+  if(!infile)
   {
-    cout<<"Could not open file lol"<<endl;
+    cout<< "Could not open file."<<endl;
+    exit(1);
   }
 
   while(getline(infile, fname))
   {
-    N++;
+    i++;
   }
 
   infile.close();
-  return N;
+  return i;
 }
 
 
 // Displays all current people in Person array along with their balance
-void Display(Person P[], int N)
+void Display(Person *P, int N)
 {
   cout << "Name:";
   cout << right << setw(30) << "Balance:" << endl;
@@ -83,58 +153,20 @@ void Display(Person P[], int N)
 }
 
 
-// Fills array of people with proper information from file; returns a struct
-Person fillPerson(Person P[], int N)
-{
-  string fname;
-  string lname;
-  string fullname;
-  string garbage;
-
-  int i = 0;
-
-  ifstream infile;
-  infile.open("data.txt");
-
-  while(!infile.eof())
-  {
-    infile >> fname >> lname;
-    infile >> P[i].balance;
-    fullname = fname + " " + lname;
-    strcpy(P[i].name, fullname.c_str());
-    i++;
-    //getline(cin, garbage);
-
-  }
-
-  infile.close();
-  return P[N];
-}
-
-
 // Compares everybody's balance and displays person who has the highest
-void FindRichest(Person P[], int N)
+void FindRichest(Person *P, int N)
 {
-  Person T[N];
   int person = 0;
-  float max;
+  float max = 0.0;
 
-  for (int i = 0; i < N; i++)
+  for (int o = 0; o < N; o++)
   {
-    T[i].balance = P[i].balance;
-  }
-  max = T[0].balance;
-
-  for (int o = 1; o < N; o++)
-  {
-    if (max < T[o].balance)
+    if (max < P[o].balance)
     {
-      max = T[o].balance;
+      max = P[o].balance;
       person = o;
     }
   }
-
-
 
   cout<< "The customer with max balance is: "
       << P[person].name << endl;
@@ -142,15 +174,14 @@ void FindRichest(Person P[], int N)
 
 
 // Asks user to enter a name; looks for person in array; updates balance
-void Deposit(string CustName, Person P[], int  N)
+void Deposit(string CustName, Person *P, int  N)
 {
   int deposit;
-  string custname;
+  string name;
 
   cout << "Enter your full name to deposit money: "<<endl;
-  getline(cin, custname);
-
-  CustName = custname;
+  getline(cin, CustName);
+  cout<< "after";
 
   for (int i = 0; i < N; i++)
   {
@@ -165,7 +196,7 @@ void Deposit(string CustName, Person P[], int  N)
       }
       else
       {
-            if (i == N-1)
+            if (i == N)
             {
                   cout<< CustName << " has not been found in the array."<<endl;
             }
@@ -173,18 +204,19 @@ void Deposit(string CustName, Person P[], int  N)
   }
 }
 
-void newCopy(string file, Person P[], int N)
+void newCopy(string file, Person *P, int N)
 {
   ofstream outfile;
   outfile.open(file);
 
-  cout<<"The data.txt file is now updated."<<endl<<endl;
 
   for (int i = 0; i < N; i++)
   {
     outfile << P[i].name << " ";
     outfile << fixed<<  setprecision(2)<< P[i].balance << endl;
   }
+
+  cout << "The data.txt file is now updated." << endl;
 
   outfile.close();
 }
